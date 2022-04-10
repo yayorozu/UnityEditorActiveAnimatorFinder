@@ -13,9 +13,18 @@ namespace Yorozu.EditorTool
             var window = GetWindow<ActiveAnimatorFinderWindow>("ActiveAnimatorFinder");
             window.Show();
         }
+        
+        [SerializeField]
+        private TreeViewState _state;
+
+        [SerializeField]
+        private MultiColumnHeaderState _columnHeaderState;
+
+        private DateTime _date;
 
         private float _refreshInterval = 1f;
-        private DateTime _date;
+
+        private AnimatorTreeView _treeView;
 
         private void OnEnable()
         {
@@ -23,12 +32,34 @@ namespace Yorozu.EditorTool
             _date = _date.AddSeconds(_refreshInterval);
         }
 
-        private AnimatorTreeView _treeView;
-        [SerializeField]
-        private TreeViewState _state;
-        [SerializeField]
-        private MultiColumnHeaderState _columnHeaderState;
-        
+        private void OnGUI()
+        {
+            InitIfNeeded();
+
+            using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
+            {
+                if (GUILayout.Button("Rebuild", EditorStyles.toolbarButton))
+                {
+                    _treeView = null;
+                    GUIUtility.ExitGUI();
+                }
+
+                GUILayout.FlexibleSpace();
+
+                if (GUILayout.Button("Manual Refresh", EditorStyles.toolbarButton)) _treeView?.Refresh();
+
+                using (var check = new EditorGUI.ChangeCheckScope())
+                {
+                    _refreshInterval = EditorGUILayout.Slider(new GUIContent("Refresh Interval", "0 is Stop"),
+                        _refreshInterval, 0f, 10f);
+                    if (check.changed) AddInterval();
+                }
+            }
+
+            var rect = GUILayoutUtility.GetRect(0, 100000, 0, 100000);
+            _treeView?.OnGUI(rect);
+        }
+
         private void InitIfNeeded()
         {
             _state ??= new TreeViewState();
@@ -55,50 +86,16 @@ namespace Yorozu.EditorTool
         {
             if (DateTime.Now < _date)
                 return;
-            
+
             if (!EditorApplication.isPlaying)
                 return;
-               
+
             if (_refreshInterval <= 0)
                 return;
-            
+
             AddInterval();
             _treeView?.Refresh();
             Repaint();
-        }
-        
-        private void OnGUI()
-        {
-            InitIfNeeded();
-
-            using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
-            {
-                if (GUILayout.Button("Rebuild", EditorStyles.toolbarButton))
-                {
-                    _treeView = null;
-                    EditorGUIUtility.ExitGUI();
-                }
-                
-                GUILayout.FlexibleSpace();
-                
-                if (GUILayout.Button("Manual Refresh", EditorStyles.toolbarButton))
-                {
-                    _treeView?.Refresh();
-                }
-
-                using (var check = new EditorGUI.ChangeCheckScope())
-                {
-                    _refreshInterval = EditorGUILayout.Slider(new GUIContent("Refresh Interval", "0 is Stop"), _refreshInterval, 0f, 10f);
-                    if (check.changed)
-                    {
-                        AddInterval();
-                    }
-                }
-                
-            }
-            
-            var rect = GUILayoutUtility.GetRect(0, 100000, 0, 100000);
-            _treeView?.OnGUI(rect);
         }
     }
 }
