@@ -1,0 +1,14 @@
+{
+  "name": "yorozu.tool.active-animator-finder",
+  "version": "1.0.0",
+  "displayName": "Yorozu Active Animator Finder",
+  "description": "再生中で動作している Animator 一覧を表示するツール",
+  "keywords": [
+    "Yorozu"
+  ],
+  "author": {
+    "name": "Yorozu",
+    "email": "hatch.tech.eng@gmail.com",
+    "url": "https://github.com/yayorozu"
+  }
+}
